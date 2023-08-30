@@ -11,8 +11,11 @@ import router from "../app/Router.js";
 import { ROUTES, ROUTES_PATH } from "../constants/routes";
 
 describe("Given I am connected as an employee", () => {
-  describe("When I am on NewBill page, there are a mail icon in vertical layout", () => {
+
+  // Test pour vérifier si l'icône du courrier est mise en évidence sur la page NewBill
+  describe("When I am on NewBill page, there is a mail icon in vertical layout", () => {
     test("Then, the icon should be highlighted", async () => {
+      // Mock de l'environnement localStorage avec un utilisateur de type "Employee"
       Object.defineProperty(window, "localStorage", { value: localStorageMock });
       window.localStorage.setItem(
         "user",
@@ -20,21 +23,30 @@ describe("Given I am connected as an employee", () => {
           type: "Employee",
         })
       );
+
+      // Création de l'élément "root" simulé
       const root = document.createElement("div");
       root.setAttribute("id", "root");
       document.body.append(root);
+
+      // Initialisation de la navigation et attente de l'apparition de l'icône du courrier
       router();
       window.onNavigate(ROUTES_PATH.NewBill);
       await waitFor(() => screen.getByTestId("icon-mail"));
+
+      // Vérification si l'icône du courrier est mise en évidence
       const windowIcon = screen.getByTestId("icon-mail");
       const isIconActivated = windowIcon.classList.contains("active-icon");
       expect(isIconActivated).toBeTruthy();
     });
   });
+
+  // Test pour vérifier si tous les champs du formulaire sont rendus correctement sur la page NewBill
   describe("Then I am on NewBill page, there are a form", () => {
     test("Then, all the form input should be render correctly", () => {
+      // Mise en place du DOM simulé avec le contenu de NewBillUI
       document.body.innerHTML = NewBillUI();
-
+      // Récupération des éléments du formulaire
       const formNewBill = screen.getByTestId("form-new-bill");
       const type = screen.getAllByTestId("expense-type");
       const name = screen.getAllByTestId("expense-name");
@@ -46,6 +58,7 @@ describe("Given I am connected as an employee", () => {
       const file = screen.getAllByTestId("file");
       const submitBtn = document.querySelector("#btn-send-bill");
 
+      // Vérification de la présence de tous les éléments du formulaire
       expect(formNewBill).toBeTruthy();
       expect(type).toBeTruthy();
       expect(name).toBeTruthy();
@@ -57,11 +70,15 @@ describe("Given I am connected as an employee", () => {
       expect(file).toBeTruthy();
       expect(submitBtn).toBeTruthy();
 
+      // Vérification du texte visible sur la page
       expect(screen.getAllByText("Envoyer une note de frais")).toBeTruthy();
     });
   });
-  describe("When I am on NewBill page, and a user upload a accepted format file", () => {
-    test("Then, the file name should be correctly displayed into the input and isImgFormatValid shoud be true", () => {
+
+  // Test pour vérifier le comportement lorsqu'un utilisateur télécharge un fichier au format accepté
+  describe("When I am on NewBill page, and a user uploads an accepted format file", () => {
+    test("Then, the file name should be correctly displayed into the input and isImgFormatValid should be true", () => {
+      // Mock de l'environnement avec un utilisateur de type "Employee"
       window.localStorage.setItem(
         "user",
         JSON.stringify({
@@ -69,34 +86,48 @@ describe("Given I am connected as an employee", () => {
         })
       );
 
+      // Configuration initiale de la page NewBillUI
       document.body.innerHTML = NewBillUI();
 
+      // Fonction de simulation de la navigation
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname });
       };
+
+      // Mock d'un store vide (null)
       const store = null;
 
+      // Création d'une instance de NewBill avec des configurations simulées
       const newBill = new NewBill({
         document,
         onNavigate,
         store,
         localStorage,
       });
+
+      // Espionnage de la fonction handleChangeFile
       const handleChangeFile = jest.fn(() => newBill.handleChangeFile);
+
+      // Récupération de l'élément "file" de l'interface
       const file = screen.getByTestId("file");
 
+      // Mock de la fonction window.alert
       window.alert = jest.fn();
 
+      // Écoute de l'événement de changement de fichier
       file.addEventListener("change", handleChangeFile);
+
+      // Simulation du changement de fichier en format accepté (image PNG)
       fireEvent.change(file, {
         target: {
           files: [new File(["file.png"], "file.png", { type: "image/png" })],
         },
       });
 
-      jest.spyOn(window, "alert");
+      // Vérification que la fonction window.alert n'a pas été appelée
       expect(alert).not.toHaveBeenCalled();
 
+      // Vérifications des appels de fonctions et des valeurs de variables
       expect(handleChangeFile).toHaveBeenCalled();
       expect(file.files[0].name).toBe("file.png");
       expect(newBill.fileName).toBe("file.png");
@@ -104,8 +135,12 @@ describe("Given I am connected as an employee", () => {
       expect(newBill.formData).not.toBe(null);
     });
   });
-  describe("When I am on NewBill page, and a user upload a unaccepted format file", () => {
-    test("Then, the file name should not be displayed into the input, isImgFormatValid shoud be false and a alert should be displayed", () => {
+
+
+  // Test pour vérifier le comportement lorsqu'un utilisateur télécharge un fichier au format non accepté
+  describe("When I am on NewBill page, and a user uploads an unaccepted format file", () => {
+    test("Then, the file name should not be displayed into the input, isImgFormatValid should be false and an alert should be displayed", () => {
+      // Mock de l'environnement avec un utilisateur de type "Employee"
       window.localStorage.setItem(
         "user",
         JSON.stringify({
@@ -113,29 +148,43 @@ describe("Given I am connected as an employee", () => {
         })
       );
 
+      // Configuration initiale de la page NewBillUI
       document.body.innerHTML = NewBillUI();
 
+      // Fonction de simulation de la navigation
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname });
       };
+
+      // Mock d'un store vide (null)
       const store = null;
 
+      // Création d'une instance de NewBill avec des configurations simulées
       const newBill = new NewBill({ document, onNavigate, store, localStorage });
+
+      // Espionnage de la fonction handleChangeFile
       const handleChangeFile = jest.fn(newBill.handleChangeFile);
+
+      // Récupération de l'élément "file" de l'interface
       const file = screen.getByTestId("file");
 
+      // Mock de la fonction window.alert
       window.alert = jest.fn();
 
+      // Écoute de l'événement de changement de fichier
       file.addEventListener("change", handleChangeFile);
+
+      // Simulation du changement de fichier en format non accepté (PDF)
       fireEvent.change(file, {
         target: {
           files: [new File(["file.pdf"], "file.pdf", { type: "file/pdf" })],
         },
       });
 
-      jest.spyOn(window, "alert");
+      // Vérification que la fonction window.alert a été appelée
       expect(alert).toHaveBeenCalled();
 
+      // Vérifications des appels de fonctions et des valeurs de variables
       expect(handleChangeFile).toHaveBeenCalled();
       expect(newBill.fileName).toBe(null);
       expect(newBill.isImgFormatValid).toBe(false);
@@ -143,8 +192,10 @@ describe("Given I am connected as an employee", () => {
     });
   });
 
-  describe("When I am on NewBill page, and the user click on submit button", () => {
+  // Test pour vérifier si la fonction handleSubmit est appelée lors du clic sur le bouton de soumission
+  describe("When I am on NewBill page, and the user clicks on submit button", () => {
     test("Then, the handleSubmit function should be called", () => {
+      // Mock de l'environnement avec un utilisateur de type "Employee"
       window.localStorage.setItem(
         "user",
         JSON.stringify({
@@ -152,38 +203,54 @@ describe("Given I am connected as an employee", () => {
         })
       );
 
+      // Configuration initiale de la page NewBillUI
       document.body.innerHTML = NewBillUI();
 
+      // Fonction de simulation de la navigation
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname });
       };
 
+      // Mock d'un objet "store" contenant des méthodes simulées
       const store = {
-        bills: jest.fn(() => newBill.store),
-        create: jest.fn(() => Promise.resolve({})),
-        update: jest.fn(() => Promise.resolve({})),
-
+        bills: jest.fn(() => newBill.store), // Mock de la méthode "bills"
+        create: jest.fn(() => Promise.resolve({})), // Mock de la méthode "create"
+        update: jest.fn(() => Promise.resolve({})), // Mock de la méthode "update"
       };
 
+      // Création d'une instance de NewBill avec des configurations simulées
       const newBill = new NewBill({ document, onNavigate, store, localStorage });
 
+      // Définition d'une variable pour simuler le format d'image valide
       newBill.isImgFormatValid = true;
 
+      // Récupération du formulaire de l'interface
       const formNewBill = screen.getByTestId("form-new-bill");
+
+      // Espionnage de la fonction handleSubmit
       const handleSubmit = jest.fn(newBill.handleSubmit);
+
+      // Écoute de l'événement de soumission du formulaire
       formNewBill.addEventListener("submit", handleSubmit);
+
+      // Simulation de la soumission du formulaire
       fireEvent.submit(formNewBill);
 
+      // Vérification que la fonction handleSubmit a été appelée
       expect(handleSubmit).toHaveBeenCalled();
     });
   });
 });
 
 //POST
+// Test d'intégration pour vérifier le comportement de l'ajout d'une facture via une requête POST simulée
 describe("When I navigate to Dashboard employee", () => {
-  describe("Given I am a user connected as Employee, and a user post a newBill", () => {
+  describe("Given I am a user connected as Employee, and a user posts a newBill", () => {
     test("Add a bill from mock API POST", async () => {
+      // Espionnage de la méthode "bills" dans le mockStore
       const postSpy = jest.spyOn(mockStore, "bills");
+
+      // Données simulées d'une nouvelle facture
       const bill = {
         id: "47qAXb6fIm2zOKkLzMro",
         vat: "80",
@@ -199,12 +266,21 @@ describe("When I navigate to Dashboard employee", () => {
         email: "a@a",
         pct: 20,
       };
+
+      // Appel simulé de la méthode update dans le mockStore
       const postBills = await mockStore.bills().update(bill);
+
+      // Vérification que la méthode "bills" a été appelée une fois
       expect(postSpy).toHaveBeenCalledTimes(1);
+
+      // Vérification que les données renvoyées sont identiques aux données simulées
       expect(postBills).toStrictEqual(bill);
     });
+
+    // Suite de tests pour gérer les erreurs d'API
     describe("When an error occurs on API", () => {
       beforeEach(() => {
+        // Mock de l'utilisateur dans le localStorage
         window.localStorage.setItem(
           "user",
           JSON.stringify({
@@ -212,251 +288,77 @@ describe("When I navigate to Dashboard employee", () => {
           })
         );
 
+        // Configuration initiale de la page NewBillUI
         document.body.innerHTML = NewBillUI();
 
+        // Fonction de simulation de la navigation
         const onNavigate = (pathname) => {
           document.body.innerHTML = ROUTES({ pathname });
         };
       });
+
+      // Test pour gérer l'erreur 404 de l'API
       test("Add bills from an API and fails with 404 message error", async () => {
+        // Espionnage de la fonction console.error
         const postSpy = jest.spyOn(console, "error");
 
+        // Mock d'un store avec des méthodes simulées
         const store = {
           bills: jest.fn(() => newBill.store),
           create: jest.fn(() => Promise.resolve({})),
           update: jest.fn(() => Promise.reject(new Error("404"))),
         };
 
+        // Création d'une instance de NewBill avec des configurations simulées
         const newBill = new NewBill({ document, onNavigate, store, localStorage });
         newBill.isImgFormatValid = true;
 
-        // Submit form
+        // Récupération du formulaire de l'interface
         const form = screen.getByTestId("form-new-bill");
+
+        // Espionnage de la fonction handleSubmit
         const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
         form.addEventListener("submit", handleSubmit);
 
+        // Simulation de la soumission du formulaire
         fireEvent.submit(form);
         await new Promise(process.nextTick);
+
+        // Vérification que la fonction console.error a été appelée avec une erreur 404
         expect(postSpy).toBeCalledWith(new Error("404"));
       });
+
+      // Test pour gérer l'erreur 500 de l'API
       test("Add bills from an API and fails with 500 message error", async () => {
+        // Espionnage de la fonction console.error
         const postSpy = jest.spyOn(console, "error");
 
+        // Mock d'un store avec des méthodes simulées
         const store = {
           bills: jest.fn(() => newBill.store),
           create: jest.fn(() => Promise.resolve({})),
           update: jest.fn(() => Promise.reject(new Error("500"))),
         };
 
+        // Création d'une instance de NewBill avec des configurations simulées
         const newBill = new NewBill({ document, onNavigate, store, localStorage });
         newBill.isImgFormatValid = true;
 
-        // Submit form
+        // Récupération du formulaire de l'interface
         const form = screen.getByTestId("form-new-bill");
+
+        // Espionnage de la fonction handleSubmit
         const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
         form.addEventListener("submit", handleSubmit);
 
+        // Simulation de la soumission du formulaire
         fireEvent.submit(form);
         await new Promise(process.nextTick);
+
+        // Vérification que la fonction console.error a été appelée avec une erreur 500
         expect(postSpy).toBeCalledWith(new Error("500"));
       });
     });
   });
 });
 
-
-
-
-
-// // Configuration de l'environnement de test JS DOM
-// /**
-//  * @jest-environment jsdom
-//  */
-
-// // Importation des modules nécessaires pour les tests
-// import { fireEvent, screen } from "@testing-library/dom";
-// import NewBillUI from "../views/NewBillUI.js";
-// import NewBill from "../containers/NewBill.js";
-// import mockStore from "../__mocks__/store";
-// import { ROUTES, ROUTES_PATH } from "../constants/routes";
-// import { localStorageMock } from "../__mocks__/localStorage.js";
-// import userEvent from "@testing-library/user-event"
-// import router from "../app/Router.js";
-
-// // Simulation du magasin à l'aide de mockStore
-// jest.mock("../app/store", () => mockStore)
-
-// // Début des tests
-// describe("Étant donné que je suis connecté en tant qu'employé", () => {
-//   describe("Lorsque je soumets une nouvelle facture", () => {
-//     // Test : Vérifie que la facture est sauvegardée
-//     test("Alors la facture doit être sauvegardée", async () => {
-//       // Fonction de navigation simulée
-//       const onNavigate = (pathname) => {
-//         document.body.innerHTML = ROUTES({ pathname })
-//       }
-
-//       // Simulation des données de l'utilisateur dans le stockage local
-//       Object.defineProperty(window, "localStorage", { value: localStorageMock })
-//       window.localStorage.setItem("user", JSON.stringify({
-//         type: "Employee"
-//       }))
-
-//       // Génération du HTML de la vue de création de facture
-//       const html = NewBillUI()
-//       document.body.innerHTML = html
-
-//       // Initialisation du composant NewBill
-//       const newBillInit = new NewBill({
-//         document, onNavigate, store: null, localStorage: window.localStorage
-//       })
-
-//       // Récupération du formulaire de création de facture
-//       const formNewBill = screen.getByTestId("form-new-bill")
-//       expect(formNewBill).toBeTruthy()
-
-//       // Simulation de la soumission du formulaire
-//       const handleSubmit = jest.fn((e) => newBillInit.handleSubmit(e));
-//       formNewBill.addEventListener("submit", handleSubmit);
-//       fireEvent.submit(formNewBill);
-//       expect(handleSubmit).toHaveBeenCalled();
-//     });
-
-//     // Test : Affiche la page de création de facture
-//     test("Alors affiche la page de nouvelle facture", async () => {
-//       // Simulation des données de l'utilisateur dans le stockage local
-//       localStorage.setItem("user", JSON.stringify({ type: "Employee", email: "a@a" }));
-//       const root = document.createElement("div")
-//       root.setAttribute("id", "root")
-//       document.body.append(root)
-//       router()
-//       window.onNavigate(ROUTES_PATH.NewBill)
-//     })
-
-//     // Test : Vérifie si un fichier est correctement chargé
-//     test("Alors vérifie la facture du fichier", async () => {
-//       // Espionnage du magasin pour les factures
-//       jest.spyOn(mockStore, "bills")
-
-//       // Fonction de navigation simulée
-//       const onNavigate = (pathname) => {
-//         document.body.innerHTML = ROUTES({ pathname })
-//       }
-
-//       // Simulation des données de l'utilisateur dans le stockage local
-//       Object.defineProperty(window, "localStorage", { value: localStorageMock })
-//       Object.defineProperty(window, "location", { value: { hash: ROUTES_PATH['NewBill'] } })
-//       window.localStorage.setItem("user", JSON.stringify({
-//         type: "Employee"
-//       }))
-
-//       // Génération du HTML de la vue de création de facture
-//       const html = NewBillUI()
-//       document.body.innerHTML = html
-
-//       // Initialisation du composant NewBill
-//       const newBillInit = new NewBill({
-//         document, onNavigate, store: mockStore, localStorage: window.localStorage
-//       })
-
-//       // Création d'un fichier fictif pour la simulation
-//       const file = new File(['image'], 'image.png', { type: 'image/png' });
-
-//       // Espionnage de la fonction handleChangeFile
-//       const handleChangeFile = jest.fn((e) => newBillInit.handleChangeFile(e));
-//       const formNewBill = screen.getByTestId("form-new-bill")
-//       const billFile = screen.getByTestId('file');
-
-//       // Ajout d'un écouteur d'événements de changement de fichier
-//       billFile.addEventListener("change", handleChangeFile);
-
-//       // Simulation de l'upload d'un fichier
-//       userEvent.upload(billFile, file)
-
-//       // Vérification si le nom du fichier est défini
-//       expect(billFile.files[0].name).toBeDefined()
-
-//       // Vérification si la fonction handleChangeFile a été appelée
-//       expect(handleChangeFile).toBeCalled()
-
-//       // Simulation de la soumission du formulaire
-//       const handleSubmit = jest.fn((e) => newBillInit.handleSubmit(e));
-//       formNewBill.addEventListener("submit", handleSubmit);
-//       fireEvent.submit(formNewBill);
-//       expect(handleSubmit).toHaveBeenCalled();
-//     })
-
-
-//   })
-
-//   // Test : Vérifie si une erreur 404 est affichée lors d'une requête API échouée
-//   test("Alors affiche une erreur 404 lors d'une requête API échouée", async () => {
-//     const onNavigate = (pathname) => {
-//       document.body.innerHTML = ROUTES({ pathname })
-//     }
-
-//     // Simuler une erreur 404 lors de la récupération des factures
-//     mockStore.bills.mockImplementationOnce(() => {
-//       return {
-//         create: () => {
-//           return Promise.reject(new Error("Erreur 404"))
-//         }
-//       }
-//     })
-
-//     // Génération du HTML de la vue de création de facture
-//     const html = NewBillUI()
-//     document.body.innerHTML = html
-
-//     // Créer un composant NewBill
-//     const newBillInit = new NewBill({
-//       document, onNavigate, store: mockStore, localStorage: window.localStorage
-//     })
-
-//     // Simuler la soumission du formulaire
-//     const formNewBill = screen.getByTestId("form-new-bill")
-//     const handleSubmit = jest.fn((e) => newBillInit.handleSubmit(e));
-//     formNewBill.addEventListener("submit", handleSubmit);
-//     fireEvent.submit(formNewBill);
-
-//     // Vérifier si le message d'erreur 404 est affiché
-//     const errorMessage = await screen.getByText(/Erreur 404/)
-//     expect(errorMessage).toBeTruthy();
-//   })
-
-//   // // Test : Vérifie si une erreur 500 est affichée lors d'une requête API échouée
-//   // test("Alors affiche une erreur 500 lors d'une requête API échouée", async () => {
-//   //   const onNavigate = (pathname) => {
-//   //     document.body.innerHTML = ROUTES({ pathname })
-//   //   }
-//   //   // Simuler une erreur 500 lors de la récupération des factures
-//   //   mockStore.bills.mockImplementationOnce(() => {
-//   //     return {
-//   //       create: () => {
-//   //         return Promise.reject(new Error("Erreur 500"))
-//   //       }
-//   //     }
-//   //   })
-
-//   //       // Génération du HTML de la vue de création de facture
-//   //   const html = NewBillUI()
-//   //   document.body.innerHTML = html
-
-//   //   // Créer un composant NewBill
-//   //   const newBillInit = new NewBill({
-//   //     document, onNavigate, store: mockStore, localStorage: window.localStorage
-//   //   })
-
-//   //   // Simuler la soumission du formulaire
-//   //   const formNewBill = screen.getByTestId("form-new-bill")
-//   //   const handleSubmit = jest.fn((e) => newBillInit.handleSubmit(e));
-//   //   formNewBill.addEventListener("submit", handleSubmit);
-//   //   fireEvent.submit(formNewBill);
-
-//   //   // Vérifier si le message d'erreur 500 est affiché
-//   //   const errorMessage = await screen.getByText(/Erreur 500/)
-//   //   expect(errorMessage).toBeTruthy();
-//   // })
-
-
-// })
