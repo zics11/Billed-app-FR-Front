@@ -1,4 +1,3 @@
-
 import { ROUTES_PATH } from '../constants/routes.js'
 export let PREVIOUS_LOCATION = ''
 
@@ -41,6 +40,7 @@ export default class Login {
     e.preventDefault()
     const user = {
       type: "Admin",
+      //[Bug report] - Login --- erreur dans data-testid employe au lieu de admin
       email: e.target.querySelector(`input[data-testid="admin-email-input"]`).value,
       password: e.target.querySelector(`input[data-testid="admin-password-input"]`).value,
       status: "connected"
@@ -87,7 +87,7 @@ export default class Login {
           })
         })
         .then(() => {
-          console.log(`User with ${user.email} is created`)
+          // console.log(`User with ${user.email} is created`)
           return this.login(user)
         })
     } else {

@@ -1,5 +1,5 @@
 import { ROUTES_PATH } from '../constants/routes.js'
-import Logout from "./Logout.js"
+import Logout from './Logout.js'
 
 export default class NewBill {
   constructor({ document, onNavigate, store, localStorage }) {
@@ -7,36 +7,31 @@ export default class NewBill {
     this.onNavigate = onNavigate
     this.store = store
     const formNewBill = this.document.querySelector(`form[data-testid="form-new-bill"]`)
-    formNewBill.addEventListener("submit", this.handleSubmit)
+    formNewBill.addEventListener('submit', this.handleSubmit)
     const file = this.document.querySelector(`input[data-testid="file"]`)
-    file.addEventListener("change", this.handleChangeFile)
+    file.addEventListener('change', this.handleChangeFile)
     this.fileUrl = null
     this.fileName = null
     this.billId = null
     new Logout({ document, localStorage, onNavigate })
   }
-  handleChangeFile = e => {
-    e.preventDefault();
-    const fileInput = this.document.querySelector(`input[data-testid="file"]`);
-    const file = fileInput.files[0];
-    const filePath = fileInput.value.split(/\\/g);
-    const fileName = filePath[filePath.length - 1];
-    const fileExtension = fileName.split('.').pop().toLowerCase();
+  handleChangeFile = (e) => {
+    e.preventDefault()
+    const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
+    const fileName = file.name
+    //[Bug Hunt] - Bills --- rajout d'une fonctionn qui empeche le telechargement d'un fichier qui n'a pas la bonne extension et affiche un message d'alerte
+    const fileExtension = fileName.split('.').at(-1)
+    const validExtension = ['jpg', 'jpeg', 'png'].includes(fileExtension.toLowerCase())
 
-    // Vérifier si l'extension est valide (jpg, jpeg ou png)
-    const allowedExtensions = ['jpg', 'jpeg', 'png'];
-    if (!allowedExtensions.includes(fileExtension)) {
-      // Afficher un message d'erreur à l'utilisateur
-      alert('Veuillez choisir un fichier avec une extension jpg, jpeg ou png.');
-      // Effacer le fichier sélectionné
-      fileInput.value = '';
-      return;
+    if (!validExtension) {
+      window.alert('Wrong file format. Accepted formats: .jpg, .jpeg, .png')
+      this.document.querySelector(`input[data-testid="file"]`).value = ''
+      return
     }
-
-    const formData = new FormData();
-    const email = JSON.parse(localStorage.getItem("user")).email;
-    formData.append('file', file);
-    formData.append('email', email);
+    const formData = new FormData()
+    const email = JSON.parse(localStorage.getItem('user')).email
+    formData.append('file', file)
+    formData.append('email', email)
 
     this.store
       .bills()
@@ -47,19 +42,16 @@ export default class NewBill {
         }
       })
       .then(({ fileUrl, key }) => {
-        console.log(fileUrl);
-        this.billId = key;
-        this.fileUrl = fileUrl;
-        this.fileName = fileName;
+        // console.log(fileUrl)
+        this.billId = key
+        this.fileUrl = fileUrl
+        this.fileName = fileName
       })
-      .catch(error => console.error(error));
-  };
-
-
-  handleSubmit = e => {
+      .catch((error) => console.error(error))
+  }
+  handleSubmit = (e) => {
     e.preventDefault()
-    console.log('e.target.querySelector(`input[data-testid="datepicker"]`).value', e.target.querySelector(`input[data-testid="datepicker"]`).value)
-    const email = JSON.parse(localStorage.getItem("user")).email
+    const email = JSON.parse(localStorage.getItem('user')).email
     const bill = {
       email,
       type: e.target.querySelector(`select[data-testid="expense-type"]`).value,
@@ -86,7 +78,7 @@ export default class NewBill {
         .then(() => {
           this.onNavigate(ROUTES_PATH['Bills'])
         })
-        .catch(error => console.error(error))
+        .catch((error) => console.error(error))
     }
   }
 }
