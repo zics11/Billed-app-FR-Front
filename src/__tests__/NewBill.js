@@ -8,6 +8,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/dom'
 import { ROUTES, ROUTES_PATH } from '../constants/routes'
 import { localStorageMock } from '../__mocks__/localStorage.js'
 import mockStore from '../__mocks__/store'
+import mockStorePost from '../__mocks__/storePost'
 import router from '../app/Router.js'
 import userEvent from '@testing-library/user-event'
 
@@ -32,14 +33,14 @@ describe('Given I am connected as an employee', () => {
       router()
       window.onNavigate(ROUTES_PATH.NewBill)
     })
-    
+
     test('Then new bill icon in vertical layout should be highlighted', async () => {
       // Attend que l'icône de messagerie soit visible et vérifie qu'elle a la classe 'active-icon'
       await waitFor(() => screen.getByTestId('icon-mail'))
       const mailIcon = screen.getByTestId('icon-mail')
       expect(mailIcon.classList[0]).toBe('active-icon')
     })
-    
+
     describe('When a file is selected through file input', () => {
       test('Then selecting image files (.jpg, .jpeg, .png) should work and no alert is displayed', () => {
         // Simule la fonction onNavigate pour configurer le chemin d'accès souhaité
@@ -54,7 +55,7 @@ describe('Given I am connected as an employee', () => {
           localStorage: window.localStorage
         })
         // Espionne la fonction 'alert' pour éviter d'afficher une boîte de dialogue
-        jest.spyOn(window, 'alert').mockImplementation(() => {})
+        jest.spyOn(window, 'alert').mockImplementation(() => { })
         // Sélectionne l'élément d'entrée de fichier et simule un changement de fichier
         const fileInput = screen.getByTestId('file')
         const handleChangeFile = jest.fn(employeeNewBill.handleChangeFile)
@@ -66,7 +67,7 @@ describe('Given I am connected as an employee', () => {
         expect(window.alert).not.toHaveBeenCalled()
         expect(fileInput.files[0]).toStrictEqual(file)
       })
-      
+
       test('Then selecting wrong files should display an alert', () => {
         // Simule la fonction onNavigate pour configurer le chemin d'accès souhaité
         const onNavigate = (pathname) => {
@@ -80,7 +81,7 @@ describe('Given I am connected as an employee', () => {
           localStorage: window.localStorage
         })
         // Espionne la fonction 'alert' pour vérifier qu'elle est appelée
-        jest.spyOn(window, 'alert').mockImplementation(() => {})
+        jest.spyOn(window, 'alert').mockImplementation(() => { })
         // Sélectionne l'élément d'entrée de fichier et simule un changement de fichier incorrect
         const inputFile = screen.getByTestId('file')
         const handleChangeFile = jest.fn(newBill.handleChangeFile)
@@ -94,7 +95,7 @@ describe('Given I am connected as an employee', () => {
       })
     })
   })
-  
+
   describe('Given I am connected as an employee', () => {
     describe('When I am on NewBill Page and I submit the form with an image (jpg, jpeg, png)', () => {
       test('Then it should create a new bill', () => {
@@ -155,33 +156,22 @@ describe('Given I am a user connected as Employee', () => {
       const newBill = new NewBill({
         document,
         onNavigate,
-        store: null,
+        store: mockStorePost,
         localStorage: window.localStorage
       })
-      // Définit une note de frais valide pour les tests
-      const validBill = {
-        type: 'Restaurants et bars',
-        name: 'Vol Paris Londres',
-        date: '2022-02-15',
-        amount: 200,
-        vat: 70,
-        pct: 30,
-        commentary: 'Commentary',
-        fileUrl: '../img/0.jpg',
-        fileName: 'test.jpg',
-        status: 'pending'
-      }
+      // récupère les valeurs de la nouvelle note de frais dans le mock
+      const createdBill = await mockStorePost.bills().create({});
       // Remplit les champs du formulaire avec les valeurs de la note de frais valide
-      screen.getByTestId('expense-type').value = validBill.type
-      screen.getByTestId('expense-name').value = validBill.name
-      screen.getByTestId('datepicker').value = validBill.date
-      screen.getByTestId('amount').value = validBill.amount
-      screen.getByTestId('vat').value = validBill.vat
-      screen.getByTestId('pct').value = validBill.pct
-      screen.getByTestId('commentary').value = validBill.commentary
+      screen.getByTestId('expense-type').value = createdBill.type
+      screen.getByTestId('expense-name').value = createdBill.name
+      screen.getByTestId('datepicker').value = createdBill.date
+      screen.getByTestId('amount').value = createdBill.amount
+      screen.getByTestId('vat').value = createdBill.vat
+      screen.getByTestId('pct').value = createdBill.pct
+      screen.getByTestId('commentary').value = createdBill.commentary
       // Configure les propriétés de NewBill avec les informations de la note de frais valide
-      newBill.fileName = validBill.fileName
-      newBill.fileUrl = validBill.fileUrl
+      newBill.fileName = createdBill.fileName
+      newBill.fileUrl = createdBill.fileUrl
       // Espionne la fonction updateBill pour vérifier qu'elle est appelée
       newBill.updateBill = jest.fn()
       const handleSubmit = jest.fn((e) => newBill.handleSubmit(e))
@@ -197,7 +187,7 @@ describe('Given I am a user connected as Employee', () => {
     test('fetches error from an API and fails with 500 error', async () => {
       // Espionne la fonction bills du store et la console pour éviter d'afficher des messages d'erreur
       jest.spyOn(mockStore, 'bills')
-      jest.spyOn(console, 'error').mockImplementation(() => {}) 
+      jest.spyOn(console, 'error').mockImplementation(() => { })
       // Configure localStorage avec un utilisateur de type employé
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       Object.defineProperty(window, 'location', { value: { hash: ROUTES_PATH['NewBill'] } })

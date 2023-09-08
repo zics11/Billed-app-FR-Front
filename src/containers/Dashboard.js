@@ -8,20 +8,20 @@ import Logout from './Logout.js'
 export const filteredBills = (data, status) => {
   return data && data.length
     ? data.filter((bill) => {
-        let selectCondition
+      let selectCondition
 
-        // in jest environment
-        if (typeof jest !== 'undefined') {
-          selectCondition = bill.status === status
-        } else {
-          /* istanbul ignore next */
-          // in prod environment
-          const userEmail = JSON.parse(localStorage.getItem('user')).email
-          selectCondition = bill.status === status && ![...USERS_TEST, userEmail].includes(bill.email)
-        }
+      // in jest environment
+      if (typeof jest !== 'undefined') {
+        selectCondition = bill.status === status
+      } else {
+        /* istanbul ignore next */
+        // in prod environment
+        const userEmail = JSON.parse(localStorage.getItem('user')).email
+        selectCondition = bill.status === status && ![...USERS_TEST, userEmail].includes(bill.email)
+      }
 
-        return selectCondition
-      })
+      return selectCondition
+    })
     : []
 }
 
@@ -150,7 +150,7 @@ export default class {
     })
 
     //ANCIEN CODE
-    
+
     // bills.forEach((bill) => {
     //   $(`#open-bill${bill.id}`).click((e) => this.handleEditTicket(e, bill, bills))
     // })
